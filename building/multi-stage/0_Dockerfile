@@ -1,0 +1,27 @@
+# Partimos de PHP 7.2 con Apache
+FROM php:7.2-apache
+
+# Actualizamos y instalamos composer
+# Instalamos las extensiones de PHP
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git zip \
+    curl --silent --show-error https://getcomposer.org/installer | php \
+    pecl install xdebug-2.6.0 \
+    && docker-php-ext-enable xdebug \
+    && docker-php-ext-install pdo pdo_mysql
+
+# Establecemos la carpeta por defecto al entrar
+WORKDIR /app
+
+# Copiamos el fichero de configuración de PHP
+COPY php.ini /usr/local/etc/php/php.ini
+# Copiamos la aplicación
+COPY . /app/
+
+# Instalamos las dependecias de terceros con composer en la aplicación dentro de container
+RUN composer install \
+    --ignore-platform-reqs \
+    --no-ansi \
+    --no-dev \
+    --no-interaction \
+    --no-scripts

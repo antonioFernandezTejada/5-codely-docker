@@ -1,0 +1,97 @@
+- Indicamos la imagen base que va a utilizar -
+FROM <name_image>
+    -- Solo se puede utilizar un FROM por DockerFile --
+    -- Ejemplos: --
+        --- Indicamos que no queremos ninguna imagen base ---
+            ---- "FROM scratch" ----
+        --- Indicamos que queremos utilizar la imagen de ubuntu ---
+            ---- "FROM ubuntu" ----
+        --- Indicamos que queremos utilizar la imagen de PHP ---
+            ---- "FROM php" ----
+        --- Indicamos que queremos utilizar la imagen de PHP con apache ---
+            ---- "FROM php:<versionPHP>-apache" ----
+                ---- Ejemplo con la versión especificada de PHP -----
+                    ------ "FROM php:7.4-apache" ------
+
+
+- Añadimos los archivos seleccionados la imagen escogida en el FROM -
+-- Añadimos archivos desde una url o desde los archivos locales del sistema --
+ADD <ruta_fichero>
+    -- Permite tanto rutas locales como de internet (url). 
+    -- Ejemplo de añadir los archivos de ubuntu --
+        ADD ubuntu-bionic-core-clouding-amd64-root.tar.gz /
+
+- Añadimos archivos que desde los archivos locales del sistema -
+COPY <ruta_fichero>
+    -- Unicamente permite rutas locales del sistema, no utilizar url de internet
+
+
+    
+- Indicamos la comandos que queremos utilizar dentro del container -    
+RUN <comando>
+    -- Se pueden utilizar tantos RUN como necesitemos --
+    -- Añadir una extension en PHP --
+        --- Instalar xdebug de pecl ---
+            RUN pecl install xdebug-version
+                ---- Ejemplo ----
+                    RUN pecl install xdebug-2.6.0
+        --- Habilitar xdebug ---
+            RUN docker-php-ext-enable xdebug
+        --- Instalar pdo y pdo_mysql ---
+            RUN docker-php-ext-install pdo pdo_mysql
+ 
+- Comando que queremos ejecutar cuando alguien haga un "docker run"  -
+CMD [<path/shell>]
+    -- Es necesario simpre especificar el CMD ya que no hay CMD por defecto en docker
+    -- Normalmente se utiliza para llamar a la consola del contenedor en bash --
+        CMD ["/bin/bash"]
+
+- Especificamos por donde queremos que se ejecunten los comandos especificados
+ENTRYPOINT [<path/shell>, "-c"]
+    -- Ejemplo por bin/sh, si se utiliza este ENTRYPOINT, no es necesario especificarlo ya que es el ENTRYPOINT por defecto que utiliza docker
+        ENTRYPOINT ["/bin/sh", "-c"]
+        
+- Ejemplo donde combinamos CMD con ENTRYPOINT -
+    -- Añadimos un entry point a bin/sh y le pasamos como argumento el CMD bin/bash lo cual no proporciona un shell bash dentro del container --
+    FROM ubuntu
+   
+    ENTRYPOINT ["/bin/sh", "-c"]
+   
+    CMD ["/bin/bash"]
+
+
+
+- Indicamos las etiquetas de la imagen. Se pueden recuperar posteriormente para consultar los valores -
+LABEL <nombre_etiqueta>=<valor_etiqueta>
+    -- Normalmente se utilizan las siguientes etiquetas: --
+        --- Quien es el que mantiene esta imagen: ---
+            LABEL maintainer="antonio@antonio.com"
+        --- Cual es el nombre de la aplicación ---
+            LABEL application="codelytv-hello-world"
+
+
+
+- Indicamos el puerto que va a estar escuchando el contenedor -
+EXPOSE <puertoContainer>
+    -- Ejemplo con el puerto 80 de apache del container:
+        Expose 80 
+
+
+
+- Indicamos variables de entorno de dentro del contenedor -
+ENV <varible_entorno> = <value>
+    -- Variable de entorno recomendadas --
+        --- Varibale de entorno de mostrar errores ---
+            ENV DISPLAY_ERRORS = "On/Off"
+                ---- Ejemplos: ----
+                    ----- Activar mostrar errores -----
+                        ENV DISPLAY_ERRORS = "On"
+                    ----- Desactivar mostrar errores -----
+                         ENV DISPLAY_ERRORS = "Off"
+    -- Las variables de entorno se pueden utilizar en el php.ini --
+
+
+
+- Indicamos el volumen nuevo que queremos cargar en el container -
+VOLUME <paht_in_container>
+    - Guardara el volumen en la ruta por defecto de docker, no se puede especificar la ruta donde se guardara, para espeficar la ruta se debe hacer via cmd en el docker run

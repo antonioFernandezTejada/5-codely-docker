@@ -1,0 +1,45 @@
+# METODO PARA CREAR UNA IMAGEN CON LAS DEPENDENCIAS PERO SIN COMPOSER EN LA IMAGEN FINAL
+# Creamos una imagen de composer a la cual llamamos backend.
+# En esta imagen, instalamos todas las dependencias de composer que nos solicitan en composer.json
+# A continuación creamos otra imagen donde llamaremos a la imagen de composer para obtener las dependencias que necesitamos si necesidad de tener en esta imagen composer
+
+# Declaramos una imagen donde partimos de la imagen de composer y le asignamos el nombre backend
+FROM composer as backend
+# Podemos declarar el FROM sin alias
+# FROM composer
+
+# Establecemos el directory
+WORKDIR /app
+
+# Copiamos la aplicación a la carpeta /app/ del contenedor
+COPY . /app/
+# Ejecutamos composer para que se pueda descargar las dependecias
+RUN composer install \
+    --ignore-platform-reqs \
+    --no-ansi \
+    --no-dev \
+    --no-interaction \
+    --no-scripts
+
+
+
+
+# Declaramos otra imagen
+# Partimos de la imagen de php 7.2 con Apache 
+FROM php:7.2-apache
+
+# Instalamos las extensiones necesarias para PHP
+RUN pecl install xdebug-2.6.0 \
+    && docker-php-ext-enable xdebug \
+    && docker-php-ext-install pdo pdo_mysql
+
+# Establecemos el directorio
+WORKDIR /app
+
+# Copiamos la configuración de PHP en el contendor
+COPY php.ini /usr/local/etc/php/php.ini
+
+# Copiamos todo el contenido de la imagen con el alias que especificamos en el --from=
+COPY --from=backend /app /var/www/html
+# Si el FROM de la imagen que vamos a recuperar, no tiene un alias, podemos realizar el from utilizando como un array (El orden del array es des de arriba hasta abajo)
+# COPY --from=0 /app /var/www/html
